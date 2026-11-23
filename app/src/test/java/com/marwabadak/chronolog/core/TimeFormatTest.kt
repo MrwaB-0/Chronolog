@@ -39,7 +39,8 @@ class TimeFormatTest {
     @Test
     fun timeHms_formatsClockWithoutMillis() {
         assertEquals("18:33:26", TimeFormat.timeHms(sampleEpochMs, seoul))
-        assertEquals("00:00:00", TimeFormat.timeHms(0L, seoul))
+        // epoch 0 은 UTC 자정이므로 서울 기준 09:00:00 이다.
+        assertEquals("09:00:00", TimeFormat.timeHms(0L, seoul))
     }
 
     @Test
