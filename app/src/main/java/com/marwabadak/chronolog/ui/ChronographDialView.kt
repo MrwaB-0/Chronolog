@@ -663,7 +663,7 @@ class ChronographDialView @JvmOverloads constructor(
 
         // 링 단차 그림자와 하이라이트
         ringPaint.strokeWidth = dp(0.9f)
-        ringPaint.color = 0x8C000000
+        ringPaint.color = 0x8C000000.toInt()
         canvas.drawCircle(centerX, centerY, outer - dp(0.3f), ringPaint)
         ringPaint.color = 0x59FFFFFF
         canvas.drawCircle(centerX, centerY, outer - dp(1.0f), ringPaint)
@@ -1171,7 +1171,7 @@ class ChronographDialView @JvmOverloads constructor(
 
         // 중심 리지 하이라이트
         ringPaint.strokeWidth = dp(0.7f)
-        ringPaint.color = 0x80FFFFFF
+        ringPaint.color = 0x80FFFFFF.toInt()
         canvas.drawLine(0f, -tip * 0.62f, 0f, tail * 0.70f, ringPaint)
 
         // 야광 포인트
