@@ -857,9 +857,11 @@ class ChronographDialView @JvmOverloads constructor(
     private fun drawBrand(canvas: Canvas) {
         val r = caseRadius
 
-        brandPaint.textSize = r * 0.063f
+        brandPaint.textSize = r * 0.055f
+        brandPaint.letterSpacing = 0.18f
         brandPaint.color = 0xFFF0F7FC.toInt()
-        canvas.drawText("CHRONOLOG", centerX, centerY - r * 0.300f, brandPaint)
+        canvas.drawText("STUDY STOPWATCH", centerX, centerY - r * 0.300f, brandPaint)
+        brandPaint.letterSpacing = 0.26f
 
         labelPaint.textSize = r * 0.034f
         labelPaint.letterSpacing = 0.34f

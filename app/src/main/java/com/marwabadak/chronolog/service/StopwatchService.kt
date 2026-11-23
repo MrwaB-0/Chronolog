@@ -235,7 +235,7 @@ class StopwatchService : Service(), MeasurementSession.Listener {
         private const val NOTIFICATION_ID = 4102
         private const val REQUEST_OPEN = 4200
         private const val REQUEST_STOP = 4201
-        private const val WAKE_LOCK_TAG = "Chronolog::StopwatchTiming"
+        private const val WAKE_LOCK_TAG = "StudyStopwatch::Timing"
 
         /** 측정 시작과 함께 포그라운드 서비스를 올린다. */
         fun start(context: Context) {
