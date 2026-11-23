@@ -739,11 +739,13 @@ class ChronographDialView @JvmOverloads constructor(
 
     private fun drawNumerals(canvas: Canvas) {
         val r = caseRadius
-        labelPaint.textSize = r * 0.056f
+        labelPaint.textSize = r * 0.052f
         labelPaint.color = 0xFFC9D7E4.toInt()
         labelPaint.letterSpacing = 0.04f
         val radius = r * 0.612f
         for (i in 1 until 12) {
+            // 3시와 9시 방향은 서브다이얼이 자리하므로 숫자를 생략한다.
+            if (i == 3 || i == 9) continue
             val angle = i * 30.0
             val rad = Math.toRadians(angle)
             val x = centerX + radius * sin(rad).toFloat()
@@ -868,7 +870,7 @@ class ChronographDialView @JvmOverloads constructor(
         labelPaint.textSize = r * 0.030f
         labelPaint.letterSpacing = 0.20f
         labelPaint.color = 0xFF5F7385.toInt()
-        canvas.drawText("TACHYMETER 1/100 s", centerX, centerY + r * 0.232f, labelPaint)
+        canvas.drawText("CHRONOGRAPH 1/100 s", centerX, centerY + r * 0.190f, labelPaint)
         labelPaint.letterSpacing = 0f
     }
 
