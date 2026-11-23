@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Chronolog</string>
+    <string name="app_tagline">아날로그 · 디지털 통합 크로노그래프</string>
+
+    <string name="digital_zero">00:00:00.000</string>
+    <string name="window_idle">측정 대기 중 · START를 눌러 시작하세요</string>
+    <string name="window_running">시작 %1$s\n현재 %2$s</string>
+    <string name="window_stopped">시작 %1$s\n종료 %2$s</string>
+
+    <string name="btn_start">START</string>
+    <string name="btn_stop">STOP</string>
+    <string name="btn_reset">RESET</string>
+
+    <string name="sound_on">초침 소리 ON</string>
+    <string name="sound_off">초침 소리 OFF</string>
+
+    <string name="section_records">측정 기록</string>
+    <string name="records_count">%1$d건</string>
+    <string name="records_empty">아직 기록이 없습니다.\nSTOP을 누르면 측정 기록이 이곳에 영구 저장됩니다.</string>
+
+    <string name="calendar_pick">캘린더 선택</string>
+    <string name="calendar_current">캘린더: %1$s</string>
+    <string name="calendar_auto">측정 종료 시 자동 등록</string>
+    <string name="calendar_dialog_title">일정을 등록할 캘린더</string>
+    <string name="calendar_no_calendars">사용 가능한 캘린더가 없습니다. 삼성 캘린더 앱에서 계정을 먼저 확인해 주세요.</string>
+    <string name="calendar_permission_needed">캘린더 권한이 필요합니다. 권한을 허용한 뒤 다시 시도해 주세요.</string>
+    <string name="calendar_saved">%1$s 캘린더에 등록했습니다.</string>
+    <string name="calendar_failed_insert">캘린더에 직접 등록하지 못했습니다. 삼성 캘린더 앱으로 넘깁니다.</string>
+    <string name="calendar_open_app">삼성 캘린더 앱을 열 수 없습니다.</string>
+    <string name="calendar_select_first">먼저 등록할 캘린더를 선택해 주세요.</string>
+
+    <string name="record_calendar_button">삼성 캘린더에 등록</string>
+    <string name="record_delete_button">삭제</string>
+    <string name="record_delete_title">기록 삭제</string>
+    <string name="record_delete_message">#%1$d 기록을 삭제할까요? 삭제한 기록은 되돌릴 수 없습니다.</string>
+    <string name="clear_all_title">전체 기록 삭제</string>
+    <string name="clear_all_message">저장된 측정 기록 %1$d건을 모두 삭제할까요? 되돌릴 수 없습니다.</string>
+    <string name="clear_all_button">전체 삭제</string>
+    <string name="cancel">취소</string>
+    <string name="delete">삭제</string>
+
+    <string name="event_title">#%1$d 스톱워치 측정</string>
+</resources>
