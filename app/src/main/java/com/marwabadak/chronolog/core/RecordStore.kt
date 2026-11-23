@@ -53,6 +53,11 @@ class RecordStore(context: Context) {
         get() = prefs.getString(KEY_CALENDAR_LABEL, "") ?: ""
         set(value) = prefs.edit().putString(KEY_CALENDAR_LABEL, value).apply()
 
+    /** 알림 권한을 이미 한 번 요청했는지. 거부 후 반복 요청을 피한다. */
+    var notificationPrompted: Boolean
+        get() = prefs.getBoolean(KEY_NOTIFICATION_PROMPTED, false)
+        set(value) = prefs.edit().putBoolean(KEY_NOTIFICATION_PROMPTED, value).apply()
+
     companion object {
         private const val PREFS_NAME = "chronolog_prefs"
         private const val KEY_RECORDS = "records"
@@ -60,5 +65,6 @@ class RecordStore(context: Context) {
         private const val KEY_AUTO_CALENDAR = "auto_calendar_enabled"
         private const val KEY_CALENDAR_ID = "calendar_id"
         private const val KEY_CALENDAR_LABEL = "calendar_label"
+        private const val KEY_NOTIFICATION_PROMPTED = "notification_prompted"
     }
 }

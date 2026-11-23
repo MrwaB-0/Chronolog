@@ -3,8 +3,9 @@ package com.marwabadak.chronolog
 import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
-import android.os.SystemClock
 import android.view.Choreographer
 import android.view.LayoutInflater
 import android.view.View
@@ -15,26 +16,23 @@ import android.widget.ScrollView
 import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import com.marwabadak.chronolog.core.CalendarHelper
-import com.marwabadak.chronolog.core.RecordCodec
+import com.marwabadak.chronolog.core.MeasurementSession
 import com.marwabadak.chronolog.core.RecordEntry
 import com.marwabadak.chronolog.core.RecordStore
-import com.marwabadak.chronolog.core.StopwatchEngine
-import com.marwabadak.chronolog.core.TickPlayer
 import com.marwabadak.chronolog.core.TimeFormat
+import com.marwabadak.chronolog.service.StopwatchService
 import com.marwabadak.chronolog.ui.ChronographDialView
 
 class MainActivity : Activity() {
 
     private lateinit var store: RecordStore
-    private lateinit var tickPlayer: TickPlayer
-
-    /** 화면이 꺼져도 흐른 시간이 유지되는 단조 시계를 사용한다. */
-    private val engine = StopwatchEngine { SystemClock.elapsedRealtimeNanos() }
 
     private lateinit var dial: ChronographDialView
     private lateinit var tvDigital: TextView
     private lateinit var tvWindow: TextView
+    private lateinit var tvServiceState: TextView
     private lateinit var tvRecordCount: TextView
     private lateinit var tvEmpty: TextView
     private lateinit var btnStartStop: Button
@@ -47,17 +45,28 @@ class MainActivity : Activity() {
     private lateinit var scrollRoot: ScrollView
 
     private var records: MutableList<RecordEntry> = mutableListOf()
-    private var lastTickSecond = -1L
     private var frameScheduled = false
     private var suppressSwitch = false
     private var pendingPermissionAction: (() -> Unit)? = null
+    private var screenVisible = false
 
     private val frameCallback = object : Choreographer.FrameCallback {
         override fun doFrame(frameTimeNanos: Long) {
             frameScheduled = false
-            if (!engine.running) return
-            renderRunning(engine.elapsedMs())
+            if (!MeasurementSession.isRunning) return
+            renderRunning(MeasurementSession.elapsedMs())
             scheduleFrame()
+        }
+    }
+
+    private val sessionListener = object : MeasurementSession.Listener {
+        override fun onMeasurementChanged() {
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                records = store.loadRecords()
+                renderRecords()
+                if (screenVisible) syncUiWithSession()
+            }
         }
     }
 
@@ -66,11 +75,11 @@ class MainActivity : Activity() {
         setContentView(R.layout.activity_main)
 
         store = RecordStore(this)
-        tickPlayer = TickPlayer()
 
         dial = findViewById(R.id.dial)
         tvDigital = findViewById(R.id.tvDigital)
         tvWindow = findViewById(R.id.tvWindow)
+        tvServiceState = findViewById(R.id.tvServiceState)
         tvRecordCount = findViewById(R.id.tvRecordCount)
         tvEmpty = findViewById(R.id.tvEmpty)
         btnStartStop = findViewById(R.id.btnStartStop)
@@ -84,7 +93,7 @@ class MainActivity : Activity() {
 
         records = store.loadRecords()
 
-        btnStartStop.setOnClickListener { if (engine.running) stopMeasurement() else startMeasurement() }
+        btnStartStop.setOnClickListener { if (MeasurementSession.isRunning) stopMeasurement() else startMeasurement() }
         btnReset.setOnClickListener { resetMeasurement() }
         btnSound.setOnClickListener { toggleSound() }
         btnPickCalendar.setOnClickListener { pickCalendar() }
@@ -101,102 +110,123 @@ class MainActivity : Activity() {
             onAutoCalendarToggled(isChecked)
         }
 
+        MeasurementSession.addListener(sessionListener)
+
         renderRecords()
         renderIdle()
     }
 
     override fun onResume() {
         super.onResume()
+        screenVisible = true
         updateCalendarButton()
-        if (engine.running) {
-            scheduleFrame()
-        }
+        records = store.loadRecords()
+        renderRecords()
+        syncUiWithSession()
     }
 
     override fun onPause() {
         super.onPause()
+        screenVisible = false
         Choreographer.getInstance().removeFrameCallback(frameCallback)
         frameScheduled = false
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        tickPlayer.release()
+        MeasurementSession.removeListener(sessionListener)
+        Choreographer.getInstance().removeFrameCallback(frameCallback)
     }
 
     // ---------------------------------------------------------------- 측정
 
     private fun startMeasurement() {
-        if (engine.running) return
-        lastTickSecond = -1L
-        tickPlayer.resetPhase()
-        engine.start(System.currentTimeMillis())
-        dial.running = true
-        dial.elapsedMs = 0L
-        btnStartStop.setText(R.string.btn_stop)
-        btnStartStop.setBackgroundResource(R.drawable.btn_stop)
-        btnStartStop.setTextColor(0xFF2A0A05.toInt())
-        btnReset.isEnabled = false
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        renderRunning(0L)
-        scheduleFrame()
+        if (MeasurementSession.isRunning) return
+        requestNotificationPermissionOnce()
+        MeasurementSession.start(this)
+        StopwatchService.start(this)
     }
 
     private fun stopMeasurement() {
-        val elapsed = engine.stop()
-        val startEpoch = engine.startEpochMs
-        val endEpoch = startEpoch + elapsed
-
-        dial.running = false
-        dial.elapsedMs = elapsed
-        btnStartStop.setText(R.string.btn_start)
-        btnStartStop.setBackgroundResource(R.drawable.btn_start)
-        btnStartStop.setTextColor(0xFF04231A.toInt())
-        btnReset.isEnabled = true
-        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-
-        tvDigital.text = TimeFormat.elapsedHms(elapsed)
-        tvWindow.text = getString(
-            R.string.window_stopped,
-            TimeFormat.clock(startEpoch),
-            TimeFormat.clock(endEpoch)
-        )
-        if (store.soundEnabled) tickPlayer.tick()
-
-        val record = RecordEntry(RecordCodec.nextIndex(records), startEpoch, endEpoch, elapsed)
-        records = store.appendRecord(records, record)
-        renderRecords()
-
-        if (store.autoCalendarEnabled) autoRegister(record)
+        if (!MeasurementSession.isRunning) return
+        val result = MeasurementSession.stopAndSave(this)
+        StopwatchService.stop(this)
+        if (result != null && result.calendarSaved) {
+            val name = store.calendarLabel.ifBlank { getString(R.string.calendar_pick) }
+            toast(getString(R.string.calendar_saved, name))
+        }
     }
 
     private fun resetMeasurement() {
-        if (engine.running) return
-        engine.reset()
-        dial.elapsedMs = 0L
-        renderIdle()
-        btnReset.isEnabled = false
+        if (MeasurementSession.isRunning) return
+        MeasurementSession.reset()
+        dial.running = false
+        Choreographer.getInstance().removeFrameCallback(frameCallback)
+        frameScheduled = false
+    }
+
+    /** 현재 세션 상태에 맞춰 화면 전체를 다시 맞춘다. */
+    private fun syncUiWithSession() {
+        if (MeasurementSession.isRunning) {
+            dial.running = true
+            updateStartStopButton(true)
+            btnReset.isEnabled = false
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            tvServiceState.text = getString(R.string.background_state_running)
+            renderRunning(MeasurementSession.elapsedMs())
+            scheduleFrame()
+            return
+        }
+
+        dial.running = false
+        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        updateStartStopButton(false)
+
+        val record = MeasurementSession.lastResult()
+        if (record != null) {
+            btnReset.isEnabled = true
+            dial.elapsedMs = record.elapsedMs
+            tvDigital.text = TimeFormat.elapsedHms(record.elapsedMs)
+            tvWindow.text = getString(
+                R.string.window_stopped,
+                TimeFormat.clock(record.startEpochMs),
+                TimeFormat.clock(record.endEpochMs)
+            )
+            tvServiceState.text = getString(R.string.background_state_saved, record.index)
+        } else {
+            btnReset.isEnabled = false
+            renderIdle()
+        }
+    }
+
+    private fun updateStartStopButton(running: Boolean) {
+        if (running) {
+            btnStartStop.setText(R.string.btn_stop)
+            btnStartStop.setBackgroundResource(R.drawable.btn_stop)
+            btnStartStop.setTextColor(0xFF2A0A05.toInt())
+        } else {
+            btnStartStop.setText(R.string.btn_start)
+            btnStartStop.setBackgroundResource(R.drawable.btn_start)
+            btnStartStop.setTextColor(0xFF04231A.toInt())
+        }
     }
 
     private fun renderIdle() {
+        dial.elapsedMs = 0L
         tvDigital.text = getString(R.string.digital_zero)
         tvWindow.text = getString(R.string.window_idle)
+        tvServiceState.text = getString(R.string.background_state_idle)
     }
 
     private fun renderRunning(elapsed: Long) {
         dial.elapsedMs = elapsed
         tvDigital.text = TimeFormat.elapsedHms(elapsed)
-        val nowEpoch = engine.startEpochMs + elapsed
+        val start = MeasurementSession.startEpochMs
         tvWindow.text = getString(
             R.string.window_running,
-            TimeFormat.clock(engine.startEpochMs),
-            TimeFormat.clock(nowEpoch)
+            TimeFormat.clock(start),
+            TimeFormat.clock(start + elapsed)
         )
-        val currentSecond = elapsed / 1000L
-        if (currentSecond > lastTickSecond) {
-            lastTickSecond = currentSecond
-            if (store.soundEnabled) tickPlayer.tick()
-        }
     }
 
     private fun scheduleFrame() {
@@ -205,13 +235,26 @@ class MainActivity : Activity() {
         Choreographer.getInstance().postFrameCallback(frameCallback)
     }
 
+    // ---------------------------------------------------------------- 알림 권한
+
+    private fun requestNotificationPermissionOnce() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        val granted = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+        if (granted) return
+        if (store.notificationPrompted) return
+        store.notificationPrompted = true
+        requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQUEST_NOTIFICATIONS)
+    }
+
     // ---------------------------------------------------------------- 소리
 
     private fun toggleSound() {
         val enabled = !store.soundEnabled
         store.soundEnabled = enabled
         updateSoundButton(enabled)
-        if (enabled) tickPlayer.tick()
     }
 
     private fun updateSoundButton(enabled: Boolean) {
@@ -284,8 +327,19 @@ class MainActivity : Activity() {
         )
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_NOTIFICATIONS) {
+            val granted = grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED
+            if (!granted && MeasurementSession.isRunning) {
+                toast(getString(R.string.notification_permission_denied))
+            }
+            return
+        }
         if (requestCode != REQUEST_CALENDAR) return
         val action = pendingPermissionAction
         pendingPermissionAction = null
@@ -315,7 +369,7 @@ class MainActivity : Activity() {
                 return@withCalendarPermission
             }
             val ordered = calendars.sortedByDescending { it.isSamsung }
-            val labels = ordered.map { if (it.isSamsung) "★ " + it.label else it.label }.toTypedArray()
+            val labels = ordered.map { if (it.isSamsung) "[삼성] " + it.label else it.label }.toTypedArray()
             val current = ordered.indexOfFirst { it.id == store.calendarId }
             AlertDialog.Builder(this, android.R.style.Theme_Material_Dialog_Alert)
                 .setTitle(R.string.calendar_dialog_title)
@@ -352,24 +406,6 @@ class MainActivity : Activity() {
         switchAutoCalendar.isChecked = checked
         suppressSwitch = false
         if (persist) store.autoCalendarEnabled = checked
-    }
-
-    private fun autoRegister(record: RecordEntry) {
-        val calendarId = store.calendarId
-        if (calendarId <= 0L) return
-        if (!CalendarHelper.hasPermission(this)) return
-        val uri = CalendarHelper.insertEvent(
-            this,
-            calendarId,
-            CalendarHelper.eventTitle(record),
-            CalendarHelper.eventDescription(record),
-            record.startEpochMs,
-            record.endEpochMs
-        )
-        if (uri != null) {
-            val name = store.calendarLabel.ifBlank { getString(R.string.calendar_pick) }
-            toast(getString(R.string.calendar_saved, name))
-        }
     }
 
     private fun registerToCalendar(record: RecordEntry) {
@@ -411,5 +447,6 @@ class MainActivity : Activity() {
 
     companion object {
         private const val REQUEST_CALENDAR = 4101
+        private const val REQUEST_NOTIFICATIONS = 4103
     }
 }

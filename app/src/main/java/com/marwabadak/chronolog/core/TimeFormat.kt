@@ -25,6 +25,24 @@ object TimeFormat {
         return String.format(Locale.KOREA, "%02d:%02d:%02d.%03d", hour, minute, second, millis)
     }
 
+    /** 알림용 경과 시간: HH:MM:SS */
+    fun elapsedHmsShort(elapsedMs: Long): String {
+        val total = if (elapsedMs < 0L) 0L else elapsedMs
+        val hour = total / 3_600_000L
+        val minute = (total / 60_000L) % 60L
+        val second = (total / 1_000L) % 60L
+        return String.format(Locale.KOREA, "%02d:%02d:%02d", hour, minute, second)
+    }
+
+    /** 알림용 시각: HH:mm:ss */
+    fun timeHms(epochMs: Long, zone: ZoneId = ZoneId.systemDefault()): String {
+        val t = ZonedDateTime.ofInstant(Instant.ofEpochMilli(epochMs), zone)
+        return String.format(
+            Locale.KOREA, "%02d:%02d:%02d",
+            t.hour, t.minute, t.second
+        )
+    }
+
     /** 시각 전체 표기: YYYY-MM-DD HH:mm:ss.SSS */
     fun clock(epochMs: Long, zone: ZoneId = ZoneId.systemDefault()): String {
         val t = ZonedDateTime.ofInstant(Instant.ofEpochMilli(epochMs), zone)

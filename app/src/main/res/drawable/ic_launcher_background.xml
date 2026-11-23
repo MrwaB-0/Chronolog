@@ -5,31 +5,42 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+
     <path android:pathData="M0,0h108v108h-108Z">
         <aapt:attr name="android:fillColor">
             <gradient
                 android:type="linear"
-                android:startX="10"
+                android:startX="8"
                 android:startY="0"
-                android:endX="98"
+                android:endX="100"
                 android:endY="108">
-                <item android:offset="0" android:color="#FF16222E" />
-                <item android:offset="0.5" android:color="#FF0C141B" />
-                <item android:offset="1" android:color="#FF05080B" />
+                <item android:offset="0" android:color="#FF1B2836" />
+                <item android:offset="0.45" android:color="#FF0D151C" />
+                <item android:offset="1" android:color="#FF04070A" />
             </gradient>
         </aapt:attr>
     </path>
-    <path android:pathData="M54,10a44,44 0 1,0 0.001,0Z">
+
+    <path android:pathData="M54,8a46,46 0 1,0 0.01,0Z">
         <aapt:attr name="android:fillColor">
             <gradient
                 android:type="radial"
                 android:centerX="54"
-                android:centerY="40"
-                android:gradientRadius="52">
-                <item android:offset="0" android:color="#332FE3A6" />
-                <item android:offset="0.55" android:color="#1112B886" />
+                android:centerY="46"
+                android:gradientRadius="50">
+                <item android:offset="0" android:color="#2E3FE0B4" />
+                <item android:offset="0.55" android:color="#1412B886" />
                 <item android:offset="1" android:color="#00000000" />
             </gradient>
         </aapt:attr>
     </path>
+
+    <path
+        android:pathData="M54,12a42,42 0 1,0 0.01,0Z"
+        android:strokeColor="#14FFFFFF"
+        android:strokeWidth="0.5" />
+    <path
+        android:pathData="M54,17a37,37 0 1,0 0.01,0Z"
+        android:strokeColor="#0DFFFFFF"
+        android:strokeWidth="0.4" />
 </vector>

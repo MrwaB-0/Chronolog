@@ -28,6 +28,21 @@ class TimeFormatTest {
     }
 
     @Test
+    fun elapsedHmsShort_dropsMillisecondsForNotification() {
+        assertEquals("00:00:00", TimeFormat.elapsedHmsShort(0L))
+        assertEquals("00:00:26", TimeFormat.elapsedHmsShort(26_999L))
+        assertEquals("01:02:03", TimeFormat.elapsedHmsShort(3_723_004L))
+        assertEquals("12:00:00", TimeFormat.elapsedHmsShort(43_200_000L))
+        assertEquals("00:00:00", TimeFormat.elapsedHmsShort(-1L))
+    }
+
+    @Test
+    fun timeHms_formatsClockWithoutMillis() {
+        assertEquals("18:33:26", TimeFormat.timeHms(sampleEpochMs, seoul))
+        assertEquals("00:00:00", TimeFormat.timeHms(0L, seoul))
+    }
+
+    @Test
     fun koreanDuration_usesKoreanUnits() {
         assertEquals("00시간 00분 00초 000밀리초", TimeFormat.koreanDuration(0L))
         assertEquals("01시간 02분 03초 004밀리초", TimeFormat.koreanDuration(3_723_004L))

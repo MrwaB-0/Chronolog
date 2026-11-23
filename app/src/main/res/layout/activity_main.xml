@@ -132,6 +132,17 @@
                 android:text="@string/btn_reset" />
         </LinearLayout>
 
+        <!-- 백그라운드 측정 안내 -->
+        <TextView
+            android:id="@+id/tvServiceState"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:lineSpacingExtra="2dp"
+            android:text="@string/background_state_idle"
+            android:textColor="@color/muted"
+            android:textSize="11sp" />
+
         <!-- 캘린더 연동 -->
         <LinearLayout
             android:layout_width="match_parent"

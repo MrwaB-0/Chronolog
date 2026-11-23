@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Chronolog</string>
-    <string name="app_tagline">아날로그 · 디지털 통합 크로노그래프</string>
+    <string name="app_name">스터디 스탑워치</string>
+    <string name="app_tagline">정밀 아날로그와 디지털을 함께 쓰는 크로노그래프</string>
 
     <string name="digital_zero">00:00:00.000</string>
-    <string name="window_idle">측정 대기 중 · START를 눌러 시작하세요</string>
+    <string name="window_idle">측정 대기 중. START를 눌러 시작하세요.</string>
     <string name="window_running">시작 %1$s\n현재 %2$s</string>
     <string name="window_stopped">시작 %1$s\n종료 %2$s</string>
 
@@ -14,6 +14,17 @@
 
     <string name="sound_on">초침 소리 ON</string>
     <string name="sound_off">초침 소리 OFF</string>
+
+    <string name="background_state_idle">START를 누르면 화면이 꺼지거나 앱을 내려도 측정이 계속됩니다. 알림에서 종료와 저장을 할 수 있습니다.</string>
+    <string name="background_state_running">백그라운드에서도 측정 중입니다. 알림에서 종료 및 저장을 누를 수 있습니다.</string>
+    <string name="background_state_saved">#%1$d 기록을 저장했습니다.</string>
+
+    <string name="notification_channel_name">측정 알림</string>
+    <string name="notification_channel_description">측정 중 경과 시간과 종료 및 저장 버튼을 표시합니다.</string>
+    <string name="notification_title">#%1$d 측정 중</string>
+    <string name="notification_text">경과 %1$s\n시작 %2$s</string>
+    <string name="notification_action_stop">종료 및 저장</string>
+    <string name="notification_permission_denied">알림 권한이 없어 상태 표시가 제한됩니다. 측정은 계속 진행됩니다.</string>
 
     <string name="section_records">측정 기록</string>
     <string name="records_count">%1$d건</string>

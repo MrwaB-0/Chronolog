@@ -134,7 +134,7 @@ object CalendarHelper {
 
     /** 일정 설명: 회차 · 측정 날짜 · 시작~종료 시각 · 소요 시간을 모두 담는다. */
     fun eventDescription(record: RecordEntry): String = buildString {
-        append("Chronolog 스톱워치 기록")
+        append("스터디 스탑워치 기록")
         append('\n')
         append("회차: #").append(record.index)
         append('\n')
