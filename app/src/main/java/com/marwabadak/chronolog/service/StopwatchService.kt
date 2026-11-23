@@ -214,6 +214,7 @@ class StopwatchService : Service(), MeasurementSession.Listener {
             .setContentText(body)
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))
             .setContentIntent(openIntent)
+            .addAction(0, getString(R.string.notification_action_open), openIntent)
             .addAction(0, getString(R.string.notification_action_stop), stopIntent)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
